@@ -2,8 +2,6 @@
 
 namespace AppBundle\Controller;
 
-
-
 use AppBundle\Entity\Genus;
 use AppBundle\Entity\GenusNote;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -20,22 +18,8 @@ use Symfony\Component\HttpFoundation\Response;
 class GenusController extends Controller
 {
     /**
-     * @Route("/genus")
-     */
-    public function listAction()
-    {
-        $em = $this->getDoctrine()->getManager();
-
-        $genuses = $em->getRepository('AppBundle:Genus')
-            ->findAllPublishedOrderBySize();
-
-        return $this->render('genus/list.html.twig', [
-            'genuses' => $genuses,
-        ]);
-    }
-
-    /**
      * @Route("/genus/new")
+     * @throws \Exception A Exception error.
      */
     public function newAction()
     {
@@ -61,6 +45,20 @@ class GenusController extends Controller
     }
 
     /**
+     * @Route("/genus")
+     */
+    public function listAction()
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $genuses = $em->getRepository('AppBundle:Genus')
+            ->findAllPublishedOrderByRecentlyActive();
+        return $this->render('genus/list.html.twig', [
+            'genuses' => $genuses,
+        ]);
+    }
+
+    /**
      * @Route("/genus/{genusName}", name="genus_show")
      */
     public function showAction($genusName)
@@ -69,7 +67,6 @@ class GenusController extends Controller
         $genus = $em->getRepository('AppBundle:Genus')->findOneBy([
             'name' => $genusName,
         ]);
-
         if (!$genus) {
             throw $this->createNotFoundException('No genus found');
         }
@@ -86,8 +83,11 @@ class GenusController extends Controller
         }
         */
 
+        $recentNotes = $em->getRepository('AppBundle:GenusNote')
+            ->findAllRecentNotesForGenus($genus);
         return $this->render('genus/show.html.twig', [
             'genus' => $genus,
+            'recentNoteCount' => count($recentNotes),
         ]);
     }
 
