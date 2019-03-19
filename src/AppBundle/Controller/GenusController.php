@@ -11,22 +11,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
-
-/**
- * Class GenusController
- * @package AppBundle\Controller
- */
 class GenusController extends Controller
 {
     /**
      * @Route("/genus/new")
-     * @throws \Exception A Exception error.
      */
     public function newAction()
     {
         $genus = new Genus();
-
-        $genus->setName('Octopus' . rand(1, 100));
+        $genus->setName('Octopus'.rand(1, 100));
         $genus->setSubFamily('Octopodinae');
         $genus->setSpeciesCount(rand(100, 99999));
 
@@ -42,7 +35,7 @@ class GenusController extends Controller
         $em->persist($note);
         $em->flush();
 
-        return new Response('<html><body>Genus created!</html></body>');
+        return new Response('<html><body>Genus created!</body></html>');
     }
 
     /**
@@ -53,10 +46,10 @@ class GenusController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         $genuses = $em->getRepository('AppBundle:Genus')
-            ->findAllPublishedOrderByRecentlyActive();
+            ->findAllPublishedOrderedByRecentlyActive();
 
         return $this->render('genus/list.html.twig', [
-            'genuses' => $genuses,
+            'genuses' => $genuses
         ]);
     }
 
@@ -66,36 +59,28 @@ class GenusController extends Controller
     public function showAction($genusName)
     {
         $em = $this->getDoctrine()->getManager();
-        $genus = $em->getRepository('AppBundle:Genus')->findOneBy([
-            'name' => $genusName,
-        ]);
+
+        $genus = $em->getRepository('AppBundle:Genus')
+            ->findOneBy(['name' => $genusName]);
+
         if (!$genus) {
-            throw $this->createNotFoundException('No genus found');
+            throw $this->createNotFoundException('genus not found');
         }
 
-        $transformer = $this->get('app.markdown_transformer');
+        $markdownTransformer = $this->get('app.markdown_transformer');
+        $funFact = $markdownTransformer->parse($genus->getFunFact());
 
-        $funFact = $transformer->parse($genus->getFunFact());
-
-        /*
-        $cache = $this->get('doctrine_cache.providers.my_markdown_cache');
-        $key = md5($funFact);
-        if ($cache->contains($key)) {
-            $funFact = $cache->fetch($key);
-        } else {
-            sleep(1);
-            $funFact = $this->get('markdown.parser')->transform($funFact);
-            $cache->save($key, $funFact);
-        }
-        */
+        $this->get('logger')
+            ->info('Showing genus: '.$genusName);
 
         $recentNotes = $em->getRepository('AppBundle:GenusNote')
             ->findAllRecentNotesForGenus($genus);
-        return $this->render('genus/show.html.twig', [
+
+        return $this->render('genus/show.html.twig', array(
             'genus' => $genus,
             'funFact' => $funFact,
-            'recentNoteCount' => count($recentNotes),
-        ]);
+            'recentNoteCount' => count($recentNotes)
+        ));
     }
 
     /**
@@ -110,7 +95,7 @@ class GenusController extends Controller
             $notes[] = [
                 'id' => $note->getId(),
                 'username' => $note->getUsername(),
-                'avatarUri' => '/images/' . $note->getUserAvatarFilename(),
+                'avatarUri' => '/images/'.$note->getUserAvatarFilename(),
                 'note' => $note->getNote(),
                 'date' => $note->getCreatedAt()->format('M d, Y')
             ];
