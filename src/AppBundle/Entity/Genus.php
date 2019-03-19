@@ -11,6 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Genus
 {
+    /**
+     * Genus constructor.
+     */
     public function __construct()
     {
         $this->notes = new ArrayCollection();
@@ -107,7 +110,7 @@ class Genus
      */
     public function getFunFact()
     {
-        return $this->funFact;
+        return '**TEST**' . $this->funFact;
     }
 
     /**
@@ -118,6 +121,10 @@ class Genus
         $this->funFact = $funFact;
     }
 
+    /**
+     * @return \DateTime
+     * @throws \Exception
+     */
     public function getUpdatedAt()
     {
         return new \DateTime('-'.rand(0, 100).' days');
