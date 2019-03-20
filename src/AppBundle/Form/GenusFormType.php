@@ -17,11 +17,28 @@ class GenusFormType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('subFamily')
+            ->add('subFamily', EntityType::class, [
+                'placeholder' => 'Choose a Sub Family',
+                'class' => SubFamily::class,
+                'query_builder' => function(SubFamilyRepository $repo) {
+                    return $repo->createAlphabeticalQueryBuilder();
+                }
+            ])
             ->add('speciesCount')
             ->add('funFact')
-            ->add('isPublished')
-            ->add('firstDiscoveredAt');
+            ->add('isPublished', ChoiceType::class, [
+                'choices' => [
+                    'Yes' => true,
+                    'No' => false,
+                ]
+            ])
+            ->add('firstDiscoveredAt', DateType::class, [
+                'widget' => 'single_text',
+                'attr' => [
+                    'class' => 'js-datepicker'
+                ],
+                'html5' => false,
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver)
