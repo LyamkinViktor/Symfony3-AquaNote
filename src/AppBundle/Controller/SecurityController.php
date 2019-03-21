@@ -32,4 +32,13 @@ class SecurityController extends Controller
             'error'         => $error,
         ));
     }
+
+    /**
+     * @Route("/logout", name="security_logout")
+     * @throws \Exception
+     */
+    public function logoutAction()
+    {
+        throw new \Exception('this should not be reached');
+    }
 }
